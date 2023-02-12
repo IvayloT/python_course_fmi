@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if category_posts %}
+
+    <h1> {{ cats }} category </h1>
+
+    <ul>
+    {% for post in category_posts %}
+        <li><a href="{% url 'post_detail' post.pk %}">{{post.title}}</a> -
+            {{ post.body|slice:":100"|safe }} - {{ post.author.first_name }} {{ post.author.last_name }}
+            {% if user.is_authenticated %}
+                - <small><a href="{% url 'delete_post' post.pk %}">Delete</a> </small></br>
+            {% endif %}
+        </li>
+    {%endfor%}
+
+    </ul>
+
+{%else%}
+
+  <h2> Sorry this category is empty! </h2>
+
+{%endif%}
+
+{% endblock %}

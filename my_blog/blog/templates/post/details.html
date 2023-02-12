@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <h1> Post details</h1>
+    <small> By: {{ post.author.first_name }}</small><br/>
+    <hr/>
+    <br/>
+    <h6>Category: {{post.category}}</h3>
+    <br/>
+    {{ post.body|safe }}
+
+    <br/><br/>
+    {% if user.is_authenticated %}
+      {% if user.id == post.author.id %}
+        <a href="{% url 'edit_post' post.pk %}"class="btn btn-secondary">Edit</a>
+        <a href="{% url 'delete_post' post.pk %}"class="btn btn-secondary">Delete</a>
+      {% endif %}
+    {% endif %}
+    <a href="{% url 'home' %}"class="btn btn-secondary" >Back</a>
+
+{% endblock %}

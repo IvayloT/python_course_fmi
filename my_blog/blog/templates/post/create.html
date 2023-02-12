@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if user.is_authenticated %}
+<h1> Create new post </h1>
+
+<br/>
+
+    <div class="form-group">
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button class="btn btn-secondary">Add</button>
+    </div>
+
+{%else%}
+
+You are not authorized!
+
+{%endif%}
+
+{% endblock %}

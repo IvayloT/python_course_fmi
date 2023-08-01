@@ -3,6 +3,7 @@ from .models import Post, Category, Comment, Profile
 
 categories = Category.objects.all().values_list('id', 'name')
 
+
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
@@ -10,9 +11,11 @@ class PostForm(forms.ModelForm):
 
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'category': forms.Select(choices=categories, attrs={'class': 'form-control'}),
+            'category': forms.Select(choices=categories,
+                                     attrs={'class': 'form-control'}),
             'body': forms.Textarea(attrs={'class': 'form-control'})
         }
+
 
 class EditForm(forms.ModelForm):
     class Meta:
@@ -21,9 +24,11 @@ class EditForm(forms.ModelForm):
 
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'category': forms.Select(choices=categories, attrs={'class': 'form-control'}),
+            'category': forms.Select(choices=categories,
+                                     attrs={'class': 'form-control'}),
             'body': forms.Textarea(attrs={'class': 'form-control'})
         }
+
 
 class CommentForm(forms.ModelForm):
     class Meta:
@@ -31,8 +36,12 @@ class CommentForm(forms.ModelForm):
         fields = ('body',)
 
         widgets = {
-            'body': forms.Textarea(attrs={'class': 'form-control', 'cols': 5, 'rows': 5, 'style': 'width:500px'})
+            'body': forms.Textarea(attrs={'class': 'form-control',
+                                          'cols': 5, 'rows': 5,
+                                          'style': 'width:500px'
+                                          })
         }
+
 
 class ProfileForm(forms.ModelForm):
     class Meta:
@@ -43,6 +52,7 @@ class ProfileForm(forms.ModelForm):
             'bio': forms.Textarea(attrs={'class': 'form-control'}),
         }
 
+
 class ImportPostForm(forms.ModelForm):
     class Meta:
         model = Post
@@ -50,5 +60,6 @@ class ImportPostForm(forms.ModelForm):
 
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'category': forms.Select(choices=categories, attrs={'class': 'form-control'}),
+            'category': forms.Select(choices=categories,
+                                     attrs={'class': 'form-control'}),
         }

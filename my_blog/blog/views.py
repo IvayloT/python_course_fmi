@@ -7,6 +7,7 @@ from django.urls import reverse_lazy
 from django.core.files.uploadedfile import UploadedFile
 from .utils import determine_file_type
 
+
 class Home(ListView):
     model = Post
     template_name = 'home.html'
@@ -18,28 +19,37 @@ class Home(ListView):
         context["categories"] = categories
         return context
 
+
 def CategoryView(request, pk):
     category_posts = Post.objects.filter(category=pk)
     category = Category.objects.get(pk=pk)
     categories = Category.objects.all()
-    return render(request, 'category/show.html', { 'cats': category.name.title(), 'category_posts': category_posts, 'categories': categories})
+    return render(request, 'category/show.html', {'cats': category.name.title(),
+                                                  'category_posts': category_posts,
+                                                  'categories': categories
+                                                  })
+
 
 class PostDetail(DetailView):
     model = Post
     template_name = 'post/details.html'
 
+
 class CreatePost(CreateView):
     model = Post
     template_name = 'post/create.html'
     form_class = PostForm
+
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super(CreatePost, self).form_valid(form)
+
 
 class CreateCategory(CreateView):
     model = Category
     template_name = 'category/create.html'
     fields = '__all__'
+
 
 class EditPost(UpdateView):
     model = Post
@@ -49,10 +59,12 @@ class EditPost(UpdateView):
     def get_success_url(self):
         return reverse_lazy('post_detail', kwargs={'pk': self.kwargs['pk']})
 
+
 class DeletePost(DeleteView):
     model = Post
     template_name = 'post/delete.html'
     success_url = reverse_lazy('home')
+
 
 class CreateComment(CreateView):
     model = Comment
@@ -76,12 +88,15 @@ class EditComment(UpdateView):
     def get_success_url(self):
         return reverse_lazy('post_detail', kwargs={'pk': self.object.post.id})
 
+
 class DeleteComment(DeleteView):
     model = Comment
     template_name = 'comment/delete.html'
 
     def get_success_url(self):
-        return reverse_lazy('post_detail', kwargs={'pk': self.object.post.id})
+        return reverse_lazy('post_detail',
+                            kwargs={'pk': self.object.post.id})
+
 
 class EditProfile(UpdateView):
     model = Profile
@@ -89,19 +104,23 @@ class EditProfile(UpdateView):
     form_class = ProfileForm
     success_url = reverse_lazy('home')
 
+
 class CreateProfile(CreateView):
     model = Profile
     template_name = 'profile/create.html'
     form_class = ProfileForm
     success_url = reverse_lazy('home')
+
     def form_valid(self, form):
         form.instance.user = self.request.user
         return super(CreateProfile, self).form_valid(form)
+
 
 class ImportPost(CreateView):
     model = Post
     template_name = 'post/import.html'
     form_class = ImportPostForm
+
     def form_valid(self, form):
         file = self.request.FILES['import_post']
         form.instance.body = determine_file_type(file)

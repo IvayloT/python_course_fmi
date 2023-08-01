@@ -13,7 +13,10 @@ class TestHomeView(TestCase):
             'password': 'secret'}
         self.user = User.objects.create_user(**self.credentials)
         self.category = Category.objects.create(name='Test category')
-        self.post = Post.objects.create(title='Test post', author=self.user, body = 'Test body', category=self.category)
+        self.post = Post.objects.create(title='Test post',
+                                        author=self.user,
+                                        body='Test body',
+                                        category=self.category)
 
     def test_login(self):
         client = Client()
@@ -28,6 +31,7 @@ class TestHomeView(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['object_list'].count(), 1)
 
+
 class TestPostCreateView(TestCase):
     def setUp(self):
         self.credentials = {
@@ -40,11 +44,15 @@ class TestPostCreateView(TestCase):
         client = Client()
         client.login(username='testuser', password='secret')
         title = 'TitlePost'
+        category_id = Category.objects.last().id
 
-        response = client.post('/add_post/', {'title': title, 'body': 'BodyPost', 'category': Category.objects.last().id })
+        response = client.post('/add_post/', {'title': title,
+                                              'body': 'BodyPost',
+                                              'category': category_id})
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Post.objects.last().title, title)
+
 
 class TestEditPostView(TestCase):
     def setUp(self):
@@ -58,13 +66,19 @@ class TestEditPostView(TestCase):
     def test_edit_post(self):
         body = 'Test body'
         new_title = 'NewPostTitle'
-        post = Post.objects.create(title='Test post', author=self.user, body = body, category=self.category)
+        post = Post.objects.create(title='Test post',
+                                   author=self.user,
+                                   body=body,
+                                   category=self.category)
         client = Client()
         client.login(**self.credentials)
 
         response = client.post(reverse('edit_post', kwargs={'pk': post.id}),
-                               {'title': new_title, 'body': 'BodyPost', 'category': self.category.id })
+                               {'title': new_title,
+                                'body': 'BodyPost',
+                                'category': self.category.id})
 
         post.refresh_from_db()
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(post.title, new_title) # expects to be updated with the new_title.
+        # expects to be updated with the new_title.
+        self.assertEqual(post.title, new_title)

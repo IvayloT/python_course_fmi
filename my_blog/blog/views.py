@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, \
+                                 UpdateView, DeleteView
 from .models import Post, Category, Comment, Profile
 from .forms import PostForm, EditForm, CommentForm, ProfileForm, ImportPostForm
 from django.urls import reverse_lazy
@@ -24,10 +25,10 @@ def CategoryView(request, pk):
     category_posts = Post.objects.filter(category=pk)
     category = Category.objects.get(pk=pk)
     categories = Category.objects.all()
-    return render(request, 'category/show.html', {'cats': category.name.title(),
-                                                  'category_posts': category_posts,
-                                                  'categories': categories
-                                                  })
+    return render(request, 'category/show.html',
+                  {'cats': category.name.title(),
+                   'category_posts': category_posts,
+                   'categories': categories})
 
 
 class PostDetail(DetailView):

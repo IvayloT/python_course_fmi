@@ -7,25 +7,25 @@ from .views import Home
 
 
 class TestHomeView(TestCase):
-    def setUp(self):
-        self.credentials = {
+    @classmethod
+    def setUpTestData(cls):
+        cls.credentials = {
             'username': 'testuser',
             'password': 'secret'}
-        self.user = User.objects.create_user(**self.credentials)
-        self.category = Category.objects.create(name='Test category')
-        self.post = Post.objects.create(title='Test post',
-                                        author=self.user,
-                                        body='Test body',
-                                        category=self.category)
+        cls.user = User.objects.create_user(**cls.credentials)
+        cls.category = Category.objects.create(name='Test category')
+        cls.post = Post.objects.create(title='Test post',
+                                       author=cls.user,
+                                       body='Test body',
+                                       category=cls.category)
+
+    def setUp(self):
+        self.logged_in = self.client.login(**self.credentials)
 
     def test_login(self):
-        client = Client()
-        logged_in = client.login(username='testuser', password='secret')
-        self.assertTrue(bool(logged_in), True)
+        self.assertTrue(bool(self.logged_in), True)
 
     def test_home_response(self):
-        client = Client()
-        client.login(username='testuser', password='secret')
         response = self.client.get("/")
 
         self.assertEqual(response.status_code, 200)
@@ -33,52 +33,115 @@ class TestHomeView(TestCase):
 
 
 class TestPostCreateView(TestCase):
-    def setUp(self):
-        self.credentials = {
+    @classmethod
+    def setUpTestData(cls):
+        cls.credentials = {
             'username': 'testuser',
             'password': 'secret'}
-        self.user = User.objects.create_user(**self.credentials)
-        self.category = Category.objects.create(name='Test category')
+        cls.user = User.objects.create_user(**cls.credentials)
+        cls.category = Category.objects.create(name='Test category')
+
+    def setUp(self):
+        self.client.login(**self.credentials)
 
     def test_creation_of_post(self):
-        client = Client()
-        client.login(username='testuser', password='secret')
         title = 'TitlePost'
-        category_id = Category.objects.last().id
+        category_id = self.category.id
 
-        response = client.post('/add_post/', {'title': title,
-                                              'body': 'BodyPost',
-                                              'category': category_id})
+        response = self.client.post('/add_post/', {'title': title,
+                                                   'body': 'BodyPost',
+                                                   'category': category_id})
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Post.objects.last().title, title)
 
 
 class TestEditPostView(TestCase):
-    def setUp(self):
-        self.credentials = {
+    @classmethod
+    def setUpTestData(cls):
+        cls.bio = 'Bio of user profile'
+        cls.credentials = {
             'username': 'testuser',
             'password': 'secret'}
-        self.user = User.objects.create_user(**self.credentials)
-        self.category = Category.objects.create(name='Test category')
-        Profile.objects.create(bio='Bio of user profile', user=self.user)
+        cls.user = User.objects.create_user(**cls.credentials)
+        cls.category = Category.objects.create(name='Test category')
+        cls.post = Post.objects.create(title='Test post',
+                                       author=cls.user,
+                                       body='Test body',
+                                       category=cls.category)
+        cls.profile = Profile.objects.create(bio=cls.bio, user=cls.user)
+
+    def setUp(self):
+        self.client.login(**self.credentials)
 
     def test_edit_post(self):
-        body = 'Test body'
         new_title = 'NewPostTitle'
-        post = Post.objects.create(title='Test post',
-                                   author=self.user,
-                                   body=body,
-                                   category=self.category)
-        client = Client()
-        client.login(**self.credentials)
 
-        response = client.post(reverse('edit_post', kwargs={'pk': post.id}),
-                               {'title': new_title,
-                                'body': 'BodyPost',
-                                'category': self.category.id})
+        response = self.client.post(reverse('edit_post',
+                                            kwargs={'pk': self.post.id}),
+                                    {'title': new_title,
+                                     'body': self.post.body,
+                                     'category': self.category.id})
 
-        post.refresh_from_db()
+        self.post.refresh_from_db()
         self.assertEqual(response.status_code, 302)
         # expects to be updated with the new_title.
-        self.assertEqual(post.title, new_title)
+        self.assertEqual(self.post.title, new_title)
+
+
+class TestDeletePostView(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.bio = 'Bio of user profile'
+        cls.credentials = {
+            'username': 'testuser',
+            'password': 'secret'}
+        cls.user = User.objects.create_user(**cls.credentials)
+        cls.category = Category.objects.create(name='Test category')
+        cls.post = Post.objects.create(title='Test post',
+                                       author=cls.user,
+                                       body='Test body',
+                                       category=cls.category)
+
+    def setUp(self):
+        self.client.login(**self.credentials)
+
+    def test_delete_post(self):
+        response = self.client.delete(reverse('delete_post',
+                                              kwargs={'pk': self.post.id}))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Post.objects.exists(), False)
+
+
+class TestImportPostView(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.credentials = {
+            'username': 'testuser',
+            'password': 'secret'}
+        cls.user = User.objects.create_user(**cls.credentials)
+        cls.category = Category.objects.create(name='Test category')
+
+    def setUp(self):
+        self.client.login(**self.credentials)
+
+    def test_import_post_from_md_file(self):
+        file = open("blog/fixtures/Test.md", 'r')
+        response = self.client.post('/import_post/',
+                                    {'title': 'Test Title',
+                                     'import_post': file,
+                                     'category': self.category.id})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Post.objects.last().body, '<h4>Hello World</h4>')
+
+    def test_import_post_from_txt_file(self):
+        file = open("blog/fixtures/Test.txt", 'r')
+        response = self.client.post('/import_post/',
+                                    {'title': 'Test Title',
+                                     'import_post': file,
+                                     'category': self.category.id})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Post.objects.last().body, 'Test text txt file.')
